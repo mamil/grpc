@@ -24,7 +24,7 @@ const (
 	JsonType Type = "application/json"
 )
 
-var NewCodecFuncMap map[Type]NewCodecFunc
+var NewCodecFuncMap map[Type]NewCodecFunc // 存储类型对应的加解密方法
 
 func init() {
 	NewCodecFuncMap = make(map[Type]NewCodecFunc)

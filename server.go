@@ -33,12 +33,12 @@ var DefaultServer = NewServer()
 
 func (server *Server) Accept(lis net.Listener) {
 	for {
-		conn, err := lis.Accept()
+		conn, err := lis.Accept() // 开启监听
 		if err != nil {
 			log.Println("rpc server: accept error:", err)
 			return
 		}
-		go server.ServeConn(conn)
+		go server.ServeConn(conn) // 处理连接
 	}
 }
 
@@ -49,7 +49,7 @@ func Accept(lis net.Listener) {
 func (server *Server) ServeConn(conn io.ReadWriteCloser) {
 	defer func() { conn.Close() }()
 	var opt Option
-	if err := json.NewDecoder(conn).Decode(&opt); err != nil {
+	if err := json.NewDecoder(conn).Decode(&opt); err != nil { // server 解密opt
 		log.Println("rpc server: options error: ", err)
 		return
 	}
@@ -58,13 +58,13 @@ func (server *Server) ServeConn(conn io.ReadWriteCloser) {
 		return
 	}
 
-	f := codec.NewCodecFuncMap[opt.CodecType]
+	f := codec.NewCodecFuncMap[opt.CodecType] // 获取类型对应的处理方法
 
 	if f == nil {
 		log.Printf("rpc server: invalid codec type %s", opt.CodecType)
 		return
 	}
-	server.serveCodec(f(conn))
+	server.serveCodec(f(conn)) // TODO: 为什么调用f(conn)
 }
 
 var invalidRequest = struct{}{}
@@ -108,6 +108,7 @@ func (server *Server) readRequestHeader(cc codec.Codec) (*codec.Header, error) {
 
 func (server *Server) readRequest(cc codec.Codec) (*request, error) {
 	h, err := server.readRequestHeader(cc)
+	log.Println("######### h:", h)
 	if err != nil {
 		return nil, err
 	}
@@ -131,6 +132,6 @@ func (server *Server) sendResponse(cc codec.Codec, h *codec.Header, body interfa
 func (server *Server) handleRequest(cc codec.Codec, req *request, sending *sync.Mutex, wg *sync.WaitGroup) {
 	defer wg.Done()
 	log.Println(req.h, req.argv.Elem())
-	req.replyv = reflect.ValueOf(fmt.Sprintf("geerpc resp %d", req.h.Seq))
+	req.replyv = reflect.ValueOf(fmt.Sprintf("grpc resp %d", req.h.Seq))
 	server.sendResponse(cc, req.h, req.replyv.Interface(), sending)
 }

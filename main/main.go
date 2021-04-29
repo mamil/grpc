@@ -17,7 +17,7 @@ func startServer(addr chan string) {
 	}
 	log.Println("start rpc server on", l.Addr())
 	addr <- l.Addr().String()
-	grpc.Accept(l)
+	grpc.Accept(l) // 服务端开始监听
 }
 
 func main() {
@@ -34,7 +34,7 @@ func main() {
 		wg.Add(1)
 		go func(i int) {
 			defer wg.Done()
-			args := fmt.Sprintf("geerpc req %d", i)
+			args := fmt.Sprintf("grpc req %d", i)
 			var reply string
 			if err := client.Call("Foo.Sum", args, &reply); err != nil {
 				log.Fatal("call Foo.Sum error:", err)

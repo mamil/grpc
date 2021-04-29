@@ -98,6 +98,7 @@ func (client *Client) receive() {
 			break
 		}
 		call := client.removeCall(h.Seq)
+
 		switch {
 		case call == nil:
 			err = client.cc.ReadBody(nil)
@@ -123,7 +124,7 @@ func NewClient(conn net.Conn, opt *Option) (*Client, error) {
 		log.Println("rpc client: codec error:", err)
 		return nil, err
 	}
-	if err := json.NewEncoder(conn).Encode(opt); err != nil {
+	if err := json.NewEncoder(conn).Encode(opt); err != nil { // client 加密opt
 		log.Println("rpc client: options error:", err)
 		_ = conn.Close()
 		return nil, err
@@ -138,7 +139,7 @@ func newClientCodec(cc codec.Codec, opt *Option) *Client {
 		opt:     opt,
 		pending: make(map[uint64]*Call),
 	}
-	go client.receive()
+	go client.receive() // 客户端开启接收
 	return client
 }
 
@@ -166,7 +167,7 @@ func Dial(network, address string, opts ...*Option) (client *Client, err error) 
 	if err != nil {
 		return nil, err
 	}
-	defer func() {
+	defer func() { // TODO：defer可以作用在return 的值上？
 		if client == nil {
 			conn.Close()
 		}
